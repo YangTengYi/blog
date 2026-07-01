@@ -1,0 +1,55 @@
+name: Build and Deploy to OSS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. 安装 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 3. 安装 pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.4
+          run_install: false
+
+      # 4. 安装依赖
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      # 5. 构建博客
+      - name: Build
+        run: pnpm run build
+
+      # 6. 安装 ossutil
+      - name: Install ossutil
+        run: |
+          wget https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64 -O /usr/local/bin/ossutil
+          chmod +x /usr/local/bin/ossutil
+
+      # 7. 部署到阿里云 OSS
+      - name: Deploy to OSS
+        run: |
+          ossutil cp -rf dist/ oss://${OSS_BUCKET}/ \
+            -i ${OSS_ACCESS_KEY_ID} \
+            -k ${OSS_ACCESS_KEY_SECRET} \
+            -e ${OSS_ENDPOINT} \
+            --update
+        env:
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
