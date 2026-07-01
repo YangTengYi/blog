@@ -10,8 +10,6 @@ import SidebarTOC from "@/components/widget/SidebarTOC.astro";
 import SiteInfo from "@/components/widget/SiteInfo.astro";
 import SiteStats from "@/components/widget/SiteStats.astro";
 import Tags from "@/components/widget/Tags.astro";
-// ========== 新增：导入每日一言组件 ==========
-import QuoteOfTheDay from "@/components/widget/QuoteOfTheDay.astro";
 import { sidebarLayoutConfig } from "@/config";
 import type {
 	MobileBottomComponentConfig,
@@ -52,8 +50,6 @@ const componentMap = {
 	calendar: Calendar,
 	music: Music,
 	siteInfo: SiteInfo,
-	// ========== 新增：每日一言组件映射 ==========
-	quoteOfTheDay: QuoteOfTheDay,
 };
 
 // 获取侧边栏位置
