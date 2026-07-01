@@ -9,10 +9,10 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/avatar.avif",
 
 	// 名字
-	name: "Firefly",
+	name: "虚无缥缈",
 
 	// 个人签名
-	bio: "Hello, I'm Firefly.",
+	bio: "Hello, I'm xuwupiaomiao.",
 
 	// 链接配置
 	// 已经预装的图标集：fa7-brands，fa7-regular，fa7-solid，material-symbols，simple-icons
@@ -30,19 +30,13 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "GitHub",
 			icon: "fa7-brands:github",
-			url: "https://github.com/CuteLeaf",
+			url: "https://github.com/yangtengyi-dream",
 			showName: false,
 		},
 		{
 			name: "Email",
 			icon: "fa7-solid:envelope",
-			url: "mailto:xiaye@msn.com",
-			showName: false,
-		},
-		{
-			name: "RSS",
-			icon: "fa7-solid:rss",
-			url: "/rss/",
+			url: "mailto:19353377895@163.com",
 			showName: false,
 		},
 	],
