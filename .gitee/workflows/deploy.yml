@@ -9,38 +9,36 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. 拉取代码
       - name: Checkout
-        uses: actions/checkout@v4
+        run: |
+          # Gitee Go 会自动拉取代码，无需额外配置
 
-      # 2. 安装 Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          node -v
+          npm -v
 
-      # 3. 安装 pnpm
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.14.4
-          run_install: false
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@9.14.4
+          pnpm -v
 
-      # 4. 安装依赖
       - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --no-frozen-lockfile
 
-      # 5. 构建博客
       - name: Build
-        run: pnpm run build
+        run: |
+          pnpm run build
 
-      # 6. 安装 ossutil
       - name: Install ossutil
         run: |
-          wget https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64 -O /usr/local/bin/ossutil
+          wget -q https://gosspublic.alicdn.com/ossutil/1.7.18/ossutil64 -O /usr/local/bin/ossutil
           chmod +x /usr/local/bin/ossutil
+          ossutil --version
 
-      # 7. 部署到阿里云 OSS
       - name: Deploy to OSS
         run: |
           ossutil cp -rf dist/ oss://${OSS_BUCKET}/ \
