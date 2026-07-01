@@ -37,3 +37,7 @@ Firefly-docs/
 cache/
 package/
 .obsidian/
+
+# ossutil 工具和配置（含密钥，不要提交）
+ossutil.exe
+.ossutilconfig
