@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  Firefly Blog - 一键部署脚本
 #  用法：在项目根目录执行 ./deploy.ps1 或双击 deploy.bat
 # ============================================================
@@ -31,10 +31,8 @@ Write-Host "[2/3] 上传到阿里云 OSS..." -ForegroundColor Yellow
 $OSS_BUCKET = "xuwupiaomiao-blog"
 $OSS_ENDPOINT = "oss-cn-beijing.aliyuncs.com"
 
-./ossutil.exe cp -rf dist/ "oss://$OSS_BUCKET/" `
-    -e $OSS_ENDPOINT `
-    --config-file .ossutilconfig `
-    --update
+$ossArgs = @("cp", "-rf", "dist/", "oss://$OSS_BUCKET/", "-e", $OSS_ENDPOINT, "--config-file", ".ossutilconfig", "--update")
+& ./ossutil.exe @ossArgs
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "上传失败！请检查错误信息。" -ForegroundColor Red
@@ -46,9 +44,9 @@ Write-Host ""
 # ===== 第 3 步：完成 =====
 Write-Host "[3/3] 部署完成！" -ForegroundColor Green
 Write-Host ""
-Write-Host "访问地址: https://$OSS_BUCKET.$OSS_ENDPOINT/index.html" -ForegroundColor Cyan
+Write-Host "访问地址: https://blog.xuwupiaomiao.cn" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  部署完成！🎉" -ForegroundColor Cyan
+Write-Host "  部署完成！" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
