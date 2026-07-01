@@ -58,6 +58,13 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			// 是否在文章详情页显示
 			showOnPostPage: true,
 		},
+		// ========== 移至左侧：每日一言组件 ==========
+		{
+			type: "quoteOfTheDay",
+			enable: true,
+			position: "top",
+			showOnPostPage: true,
+		},
 		{
 			// 组件类型：音乐播放器
 			type: "music",
@@ -128,13 +135,6 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 					unknownBuildPlatform: "Unknown CI",
 				},
 			},
-		},
-		// ========== 新增：每日一言组件 ==========
-		{
-			type: "quoteOfTheDay",
-			enable: true,
-			position: "sticky",
-			showOnPostPage: true,
 		},
 		{
 			// 组件类型：日历组件
@@ -301,7 +301,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 				},
 			},
 		},
-		// ========== 新增：每日一言组件（移动端） ==========
+		// ========== 每日一言组件（移动端） ==========
 		{
 			type: "quoteOfTheDay",
 			enable: true,
