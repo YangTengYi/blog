@@ -23,7 +23,7 @@ const currentYear = new Date().getFullYear();
 const thisYearVisits = places.filter((p) => p.date && p.date.startsWith(String(currentYear))).length;
 const totalPlaces = places.length;
 
-const clientSortedPlaces = JSON.stringify(places);
+// 统计用占位变量（地图渲染在客户端完成）
 ---
 
 <MainGridLayout title="去过的地方" description="足迹地图与旅行记录">
@@ -82,7 +82,7 @@ const clientSortedPlaces = JSON.stringify(places);
 	</div>
 </MainGridLayout>
 
-<script is:inline define:vars={{ clientSortedPlaces }}>
+<script is:inline define:vars={{ places }}>
 (function() {
 	var container = document.getElementById('life-map');
 	if (!container) {
