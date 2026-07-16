@@ -6,13 +6,13 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "Hyde Blog",
+	title: "虚无缥缈の小破站",
 
 	// 站点副标题
 	subtitle: "人心中的成见是一座大山",
 
 	// 站点 URL
-	site_url: "https://seasir.top",
+	site_url: "https://blog.xuwupiaomiao.cn",
 
 	// 站点描述
 	description:

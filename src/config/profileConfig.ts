@@ -9,10 +9,10 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/avatar.avif",
 
 	// 名字
-	name: "Hyde",
+	name: "虚无缥缈",
 
 	// 个人签名
-	bio: "Hello, I'm Hyde.",
+	bio: "Hello, I'm XuWuPiaoMiao.",
 
 	// 链接配置
 	// 已经预装的图标集：fa7-brands，fa7-regular，fa7-solid，material-symbols，simple-icons
@@ -24,31 +24,13 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "GitHub",
 			icon: "fa7-brands:github",
-			url: "https://github.com/Seasir-Hyde/Firefly-hyde",
+			url: "https://github.com/YangTengYi",
 			showName: false,
 		},
 		{
 			name: "Email",
 			icon: "fa7-solid:envelope",
-			url: "mailto:seasir666@gmail.com",
-			showName: false,
-		},
-		{
-			name: "RSS",
-			icon: "fa7-solid:rss",
-			url: "/rss/",
-			showName: false,
-		},
-		{
-			name: "cnb",
-			icon: "tdesign:logo-cnb-filled",
-			url: "https://cnb.cool/W3C/Hyde/Firefly-hyde",
-			showName: false,
-		},
-		{
-			name: "Telegram",
-			icon: "fa7-brands:telegram",
-			url: "https://t.me/seasir_Bot",
+			url: "mailto:19353377895@163.com",
 			showName: false,
 		},
 	],
