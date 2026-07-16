@@ -1,20 +1,11 @@
 ---
-import { siteConfig } from "../config/siteConfig";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { placesConfig } from "../config/placesConfig";
 
 export const prerender = true;
 
-// 足迹数据 - 在此处添加你去过的地方
-const places = [
-	{
-		province: "东京",
-		city: "涩谷",
-		district: "",
-		experience: "站在涩谷十字路口中心的感觉太震撼了，这座城市的活力给人留下难以磨灭的印象。",
-		visitCount: 1,
-		date: "2026-04-15",
-	},
-];
+// 足迹数据（从配置文件读取）
+const places = placesConfig.places;
 
 // 统计数据
 const cityCount = new Set(places.map((p) => p.city)).size;
@@ -23,7 +14,15 @@ const currentYear = new Date().getFullYear();
 const thisYearVisits = places.filter((p) => p.date && p.date.startsWith(String(currentYear))).length;
 const totalPlaces = places.length;
 
-// 统计用占位变量（地图渲染在客户端完成）
+// 传给客户端的配置
+const amapKey = placesConfig.amapKey;
+const amapSecurityCode = placesConfig.amapSecurityCode;
+const mapCenter = placesConfig.center;
+const mapZoom = placesConfig.zoom;
+const mapStyle = placesConfig.mapStyle;
+const darkMapStyle = placesConfig.darkMapStyle;
+const markerColor = placesConfig.marker.color;
+const markerSize = placesConfig.marker.size;
 ---
 
 <MainGridLayout title="去过的地方" description="足迹地图与旅行记录">
@@ -31,7 +30,7 @@ const totalPlaces = places.length;
 		<!-- 统计卡片区域 -->
 		<section class="card-base rounded-[var(--radius-large)] p-6">
 			<h1 class="mb-2 text-3xl font-bold text-[var(--primary)]">🗺️ 去过的地方</h1>
-			<p class="text-sm text-[var(--content-meta)]">在中国地图上标记你去过的城市。去过的地方会显示为红色区域覆盖，去的次数越多颜色越深。</p>
+			<p class="text-sm text-[var(--content-meta)]">在地图上标记你去过的城市，点击标记点查看足迹详情。</p>
 			<div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
 				<div class="life-stat-card rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
 					<div class="text-xs text-[var(--content-meta)]">去过城市</div>
@@ -56,7 +55,7 @@ const totalPlaces = places.length;
 		<section class="card-base rounded-[var(--radius-large)] p-6">
 			<h2 class="mb-4 text-xl font-bold text-[var(--text-color)]">足迹地图</h2>
 			<div id="life-map" class="h-[600px] w-full rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] overflow-hidden"></div>
-			<p class="mt-2 text-xs text-[var(--content-meta)] text-center">地图由 Apache ECharts 提供</p>
+			<p class="mt-2 text-xs text-[var(--content-meta)] text-center">地图由 高德地图 提供</p>
 		</section>
 
 		<!-- 地点列表区域 -->
@@ -82,7 +81,7 @@ const totalPlaces = places.length;
 	</div>
 </MainGridLayout>
 
-<script is:inline define:vars={{ places }}>
+<script is:inline define:vars={{ amapKey, amapSecurityCode, mapCenter, mapZoom, mapStyle, darkMapStyle, markerColor, markerSize, places }}>
 (function() {
 	var container = document.getElementById('life-map');
 	if (!container) {
@@ -90,151 +89,124 @@ const totalPlaces = places.length;
 		return;
 	}
 
-	var chartInstance = null;
+	// 设置高德地图安全密钥
+	window._AMapSecurityConfig = {
+		securityJsCode: amapSecurityCode,
+	};
 
-	function loadECharts() {
+	var mapInstance = null;
+	var markers = [];
+	var infoWindow = null;
+
+	function loadAMap() {
 		return new Promise(function(resolve, reject) {
-			if (window.echarts) {
-				resolve(window.echarts);
+			if (window.AMap) {
+				resolve(window.AMap);
 				return;
 			}
 			var script = document.createElement('script');
-			script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-			script.onload = function() { resolve(window.echarts); };
-			script.onerror = function() { reject(new Error('ECharts 加载失败')); };
+			script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + amapKey + '&plugin=AMap.Geocoder,AMap.InfoWindow';
+			script.onload = function() {
+				if (window.AMap) {
+					resolve(window.AMap);
+				} else {
+					reject(new Error('高德地图加载失败'));
+				}
+			};
+			script.onerror = function() { reject(new Error('高德地图加载失败')); };
 			document.head.appendChild(script);
 		});
 	}
 
-	function loadChinaMap() {
-		// 优先使用阿里云 DataV 的国内数据源（无需代理，国内访问快）
-		return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-			.then(function(res) {
-				if (!res.ok) throw new Error('DataV fetch failed');
-				return res.json();
-			})
-			.catch(function() {
-				// 备用：jsdelivr CDN（注意：5.x 包路径已变更，4.9.0 路径可用）
-				return fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json')
-					.then(function(res) { return res.json(); });
+	// 根据地点名称使用高德地理编码获取经纬度
+	function geocodePlace(AMap, place) {
+		return new Promise(function(resolve) {
+			var geocoder = new AMap.Geocoder({ city: '' });
+			var address = (place.province || '') + (place.city || '') + (place.district || '');
+			geocoder.getLocation(address, function(status, result) {
+				if (status === 'complete' && result.geocodes && result.geocodes.length > 0) {
+					var lnglat = result.geocodes[0].location;
+					resolve({ lng: lnglat.lng, lat: lnglat.lat });
+				} else {
+					console.warn('地理编码失败:', address, status);
+					resolve(null);
+				}
 			});
+		});
+	}
+
+	// 检测暗色模式
+	function isDarkMode() {
+		return window.matchMedia('(prefers-color-scheme: dark)').matches;
 	}
 
 	function initMap() {
 		var currentContainer = document.getElementById('life-map');
 		if (!currentContainer) return;
 
-		if (chartInstance) {
-			chartInstance.dispose();
-			chartInstance = null;
-		}
-
-		Promise.all([loadECharts(), loadChinaMap()]).then(function(results) {
-			var echartsLib = results[0];
-			var chinaMapData = results[1];
-
-			currentContainer = document.getElementById('life-map');
-			if (!currentContainer || !chinaMapData) {
-				if (currentContainer) {
-					currentContainer.innerHTML = '<div class="h-full flex items-center justify-center text-[var(--content-meta)]">地图数据加载失败</div>';
-				}
-				return;
-			}
-
-			echartsLib.registerMap('china', chinaMapData);
-			chartInstance = echartsLib.init(currentContainer);
-
-			currentContainer.offsetHeight;
-
-			var provinceVisitCount = {};
-			var maxVisits = 1;
-
-			places.forEach(function(place) {
-				var province = place.province;
-				var count = place.visitCount || 1;
-				if (province) {
-					provinceVisitCount[province] = (provinceVisitCount[province] || 0) + count;
-					if (provinceVisitCount[province] > maxVisits) {
-						maxVisits = provinceVisitCount[province];
-					}
-				}
+		loadAMap().then(function(AMap) {
+			// 创建地图
+			mapInstance = new AMap.Map(currentContainer, {
+				zoom: mapZoom,
+				center: mapCenter,
+				mapStyle: isDarkMode() ? darkMapStyle : mapStyle,
+				viewMode: '2D',
 			});
 
-			var provinceData = (chinaMapData.features || []).map(function(f) {
-				var name = f.properties && f.properties.name;
-				var normalizedName = name.replace(/省|自治区|特别行政区/g, '');
-				var visits = provinceVisitCount[normalizedName] || provinceVisitCount[name] || 0;
-				var matchedPlaces = places.filter(function(p) {
-					var pName = (p.province || '').replace(/省|自治区|特别行政区/g, '');
-					return pName === normalizedName || pName === name;
+			// 创建信息窗
+			infoWindow = new AMap.InfoWindow({
+				offset: new AMap.Pixel(0, -markerSize - 5),
+				closeWhenClickMap: true,
+			});
+
+			// 对每个地点进行地理编码并添加标记
+			var geocodePromises = places.map(function(place) {
+				return geocodePlace(AMap, place).then(function(lnglat) {
+					if (!lnglat) return null;
+
+					// 创建标记点
+					var marker = new AMap.CircleMarker({
+						center: [lnglat.lng, lnglat.lat],
+						radius: markerSize,
+						fillColor: markerColor,
+						fillOpacity: 0.8,
+						strokeColor: '#fff',
+						strokeWeight: 2,
+						cursor: 'pointer',
+						zIndex: 100,
+					});
+
+					marker.setMap(mapInstance);
+
+					// 点击标记显示信息窗
+					var content = '<div style="padding:8px;min-width:180px;">' +
+						'<strong style="font-size:14px;">' + (place.province || '') + ' - ' + (place.city || '') + '</strong>' +
+						(place.experience ? '<p style="margin:4px 0;font-size:12px;color:#666;">' + place.experience + '</p>' : '') +
+						'<div style="font-size:12px;color:#999;">到访 ' + (place.visitCount || 1) + ' 次' +
+						(place.date ? ' · ' + place.date : '') + '</div>' +
+						'</div>';
+
+					marker.on('click', function() {
+						infoWindow.setContent(content);
+						infoWindow.open(mapInstance, [lnglat.lng, lnglat.lat]);
+					});
+
+					markers.push(marker);
+					return marker;
 				});
-				return { name: name, value: visits, places: matchedPlaces };
 			});
 
-			var option = {
-				tooltip: {
-					trigger: 'item',
-					formatter: function(params) {
-						if (params.value && params.value > 0) {
-							var tipPlaces = params.data && params.data.places ? params.data.places : [];
-							var tip = '<strong>' + params.name + '</strong><br/>到访：' + params.value + '次';
-							if (tipPlaces.length > 0) {
-								tip += "<br/><span style='font-size:11px;color:#888;'>";
-								for (var i = 0; i < Math.min(tipPlaces.length, 5); i++) {
-									var city = tipPlaces[i].city || '该地区';
-									tip += '<br/>• ' + city + '(' + (tipPlaces[i].visitCount || 1) + '次)';
-								}
-								if (tipPlaces.length > 5) tip += '<br/>...等' + tipPlaces.length + '处';
-								tip += '</span>';
-							}
-							return tip;
-						}
-						return '<strong>' + params.name + '</strong><br/><span style="color:#999;">未到访</span>';
-					}
-				},
-				visualMap: {
-					type: 'piecewise',
-					show: true,
-					left: 20,
-					bottom: 20,
-					pieces: [
-						{gt: Math.ceil(maxVisits * 0.8), color: '#cc0000'},
-						{gt: Math.ceil(maxVisits * 0.5), lte: Math.ceil(maxVisits * 0.8), color: '#ff4444'},
-						{gt: 1, lte: Math.ceil(maxVisits * 0.5), color: '#ff8888'},
-						{value: 0, color: '#e8e8e8'}
-					],
-					textStyle: {color: 'var(--text-color)', fontSize: 12}
-				},
-				series: [{
-					name: '省份',
-					type: 'map',
-					map: 'china',
-					roam: true,
-					zoom: 1.2,
-					center: [105, 36],
-					itemStyle: {
-						areaColor: '#e8e8e8',
-						borderColor: '#ccc',
-						borderWidth: 1
-					},
-					emphasis: {
-						itemStyle: {
-							areaColor: '#d0d0d0'
-						},
-						label: {show: true}
-					},
-					select: {disabled: true},
-					data: provinceData
-				}]
-			};
-
-			chartInstance.setOption(option);
-
-			setTimeout(function() { chartInstance.resize(); }, 100);
+			return Promise.all(geocodePromises);
+		}).then(function(results) {
+			var validMarkers = results.filter(function(m) { return m !== null; });
+			if (validMarkers.length > 0) {
+				// 自动调整视野以包含所有标记
+				mapInstance.setFitView(validMarkers, false, [60, 60, 60, 60]);
+			}
 		}).catch(function(err) {
 			var failContainer = document.getElementById('life-map');
 			if (failContainer) {
-				failContainer.innerHTML = '<div class="h-full flex items-center justify-center text-[var(--content-meta)]">加载失败:' + (err.message || '') + '</div>';
+				failContainer.innerHTML = '<div class="h-full flex items-center justify-center text-[var(--content-meta)]">地图加载失败: ' + (err.message || '') + '</div>';
 			}
 		});
 	}
@@ -251,25 +223,26 @@ const totalPlaces = places.length;
 
 	whenReady(initMap);
 
+	// 窗口大小变化时重新调整地图
 	window.addEventListener('resize', function() {
-		if (chartInstance) {
-			chartInstance.resize();
+		if (mapInstance) {
+			mapInstance.setSize();
 		}
 	});
 
+	// 暗色模式切换时重新加载地图
 	var prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 	function handleThemeChange() {
-		if (chartInstance) {
-			chartInstance.dispose();
-			chartInstance = null;
+		if (mapInstance) {
+			mapInstance.setMapStyle(isDarkMode() ? darkMapStyle : mapStyle);
 		}
-		initMap();
 	}
 	prefersDark.addEventListener('change', handleThemeChange);
 
+	// Astro 页面切换后重新初始化
 	document.addEventListener('astro:after-swap', function() {
 		var newContainer = document.getElementById('life-map');
-		if (newContainer && !chartInstance) {
+		if (newContainer && !mapInstance) {
 			whenReady(initMap);
 		}
 	});

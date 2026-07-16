@@ -60,6 +60,7 @@ export { profileConfig } from "./profileConfig"; // 用户资料配置
 export { relationshipConfig } from "./relationshipConfig"; // 恋爱计时配置
 // 布局配置
 export { sidebarLayoutConfig } from "./sidebarConfig"; // 侧边栏布局配置
+export { placesConfig } from "./placesConfig"; // 足迹地图配置
 // 核心配置
 export { siteConfig } from "./siteConfig"; // 站点基础配置
 export { sponsorConfig } from "./sponsorConfig"; // 打赏配置
