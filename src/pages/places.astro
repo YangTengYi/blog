@@ -1,0 +1,271 @@
+---
+import { siteConfig } from "../config/siteConfig";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+
+export const prerender = true;
+
+// 足迹数据 - 在此处添加你去过的地方
+const places = [
+	{
+		province: "东京",
+		city: "涩谷",
+		district: "",
+		experience: "站在涩谷十字路口中心的感觉太震撼了，这座城市的活力给人留下难以磨灭的印象。",
+		visitCount: 1,
+		date: "2026-04-15",
+	},
+];
+
+// 统计数据
+const cityCount = new Set(places.map((p) => p.city)).size;
+const totalVisits = places.reduce((sum, p) => sum + (p.visitCount || 1), 0);
+const currentYear = new Date().getFullYear();
+const thisYearVisits = places.filter((p) => p.date && p.date.startsWith(String(currentYear))).length;
+const totalPlaces = places.length;
+
+const clientSortedPlaces = JSON.stringify(places);
+---
+
+<MainGridLayout title="去过的地方" description="足迹地图与旅行记录">
+	<div class="flex w-full flex-col gap-5">
+		<!-- 统计卡片区域 -->
+		<section class="card-base rounded-[var(--radius-large)] p-6">
+			<h1 class="mb-2 text-3xl font-bold text-[var(--primary)]">🗺️ 去过的地方</h1>
+			<p class="text-sm text-[var(--content-meta)]">在中国地图上标记你去过的城市。去过的地方会显示为红色区域覆盖，去的次数越多颜色越深。</p>
+			<div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+				<div class="life-stat-card rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
+					<div class="text-xs text-[var(--content-meta)]">去过城市</div>
+					<div class="mt-1 text-xl font-bold">{cityCount}</div>
+				</div>
+				<div class="life-stat-card rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
+					<div class="text-xs text-[var(--content-meta)]">总到访次数</div>
+					<div class="mt-1 text-xl font-bold">{totalVisits}</div>
+				</div>
+				<div class="life-stat-card rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
+					<div class="text-xs text-[var(--content-meta)]">今年出行</div>
+					<div class="mt-1 text-xl font-bold">{thisYearVisits}</div>
+				</div>
+				<div class="life-stat-card rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
+					<div class="text-xs text-[var(--content-meta)]">总地点</div>
+					<div class="mt-1 text-xl font-bold">{totalPlaces}</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 足迹地图区域 -->
+		<section class="card-base rounded-[var(--radius-large)] p-6">
+			<h2 class="mb-4 text-xl font-bold text-[var(--text-color)]">足迹地图</h2>
+			<div id="life-map" class="h-[600px] w-full rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] overflow-hidden"></div>
+			<p class="mt-2 text-xs text-[var(--content-meta)] text-center">地图由 Apache ECharts 提供</p>
+		</section>
+
+		<!-- 地点列表区域 -->
+		<section class="card-base rounded-[var(--radius-large)] p-6">
+			<h2 class="mb-4 text-xl font-bold text-[var(--text-color)]">地点列表</h2>
+			<div class="grid gap-3 md:grid-cols-2">
+				{places.map((place) => (
+					<article class="life-data-item rounded-xl border border-[var(--line-divider)] bg-[var(--card-bg)] p-4">
+						<div class="flex items-start justify-between">
+							<div>
+								<h3 class="font-semibold">{place.province} - {place.city}</h3>
+								{place.experience && <p class="mt-1 text-sm text-[var(--content-meta)]">{place.experience}</p>}
+							</div>
+							<div class="text-right text-sm text-[var(--content-meta)]">
+								<div class="font-medium">到访 {place.visitCount || 1} 次</div>
+								{place.date && <div class="text-xs">{place.date}</div>}
+							</div>
+						</div>
+					</article>
+				))}
+			</div>
+		</section>
+	</div>
+</MainGridLayout>
+
+<script is:inline define:vars={{ clientSortedPlaces }}>
+(function() {
+	var container = document.getElementById('life-map');
+	if (!container) {
+		console.error('地图容器未找到');
+		return;
+	}
+
+	var chartInstance = null;
+
+	function loadECharts() {
+		return new Promise(function(resolve, reject) {
+			if (window.echarts) {
+				resolve(window.echarts);
+				return;
+			}
+			var script = document.createElement('script');
+			script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+			script.onload = function() { resolve(window.echarts); };
+			script.onerror = function() { reject(new Error('ECharts 加载失败')); };
+			document.head.appendChild(script);
+		});
+	}
+
+	function loadChinaMap() {
+		return fetch('/china-map.json')
+			.then(function(res) { return res.json(); })
+			.catch(function() {
+				return fetch('https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/china.json').then(function(res) { return res.json(); });
+			});
+	}
+
+	function initMap() {
+		var currentContainer = document.getElementById('life-map');
+		if (!currentContainer) return;
+
+		if (chartInstance) {
+			chartInstance.dispose();
+			chartInstance = null;
+		}
+
+		Promise.all([loadECharts(), loadChinaMap()]).then(function(results) {
+			var echartsLib = results[0];
+			var chinaMapData = results[1];
+
+			currentContainer = document.getElementById('life-map');
+			if (!currentContainer || !chinaMapData) {
+				if (currentContainer) {
+					currentContainer.innerHTML = '<div class="h-full flex items-center justify-center text-[var(--content-meta)]">地图数据加载失败</div>';
+				}
+				return;
+			}
+
+			echartsLib.registerMap('china', chinaMapData);
+			chartInstance = echartsLib.init(currentContainer);
+
+			currentContainer.offsetHeight;
+
+			var provinceVisitCount = {};
+			var maxVisits = 1;
+
+			clientSortedPlaces.forEach(function(place) {
+				var province = place.province;
+				var count = place.visitCount || 1;
+				if (province) {
+					provinceVisitCount[province] = (provinceVisitCount[province] || 0) + count;
+					if (provinceVisitCount[province] > maxVisits) {
+						maxVisits = provinceVisitCount[province];
+					}
+				}
+			});
+
+			var provinceData = (chinaMapData.features || []).map(function(f) {
+				var name = f.properties && f.properties.name;
+				var normalizedName = name.replace(/省|自治区|特别行政区/g, '');
+				var visits = provinceVisitCount[normalizedName] || provinceVisitCount[name] || 0;
+				var places = clientSortedPlaces.filter(function(p) {
+					var pName = (p.province || '').replace(/省|自治区|特别行政区/g, '');
+					return pName === normalizedName || pName === name;
+				});
+				return { name: name, value: visits, places: places };
+			});
+
+			var option = {
+				tooltip: {
+					trigger: 'item',
+					formatter: function(params) {
+						if (params.value && params.value > 0) {
+							var places = params.data && params.data.places ? params.data.places : [];
+							var tip = '<strong>' + params.name + '</strong><br/>到访：' + params.value + '次';
+							if (places.length > 0) {
+								tip += "<br/><span style='font-size:11px;color:#888;'>";
+								for (var i = 0; i < Math.min(places.length, 5); i++) {
+									var city = places[i].city || '该地区';
+									tip += '<br/>• ' + city + '(' + (places[i].visitCount || 1) + '次)';
+								}
+								if (places.length > 5) tip += '<br/>...等' + places.length + '处';
+								tip += '</span>';
+							}
+							return tip;
+						}
+						return '<strong>' + params.name + '</strong><br/><span style="color:#999;">未到访</span>';
+					}
+				},
+				visualMap: {
+					type: 'piecewise',
+					show: true,
+					left: 20,
+					bottom: 20,
+					pieces: [
+						{gt: Math.ceil(maxVisits * 0.8), color: '#cc0000'},
+						{gt: Math.ceil(maxVisits * 0.5), lte: Math.ceil(maxVisits * 0.8), color: '#ff4444'},
+						{gt: 1, lte: Math.ceil(maxVisits * 0.5), color: '#ff8888'},
+						{value: 0, color: '#e8e8e8'}
+					],
+					textStyle: {color: 'var(--text-color)', fontSize: 12}
+				},
+				series: [{
+					name: '省份',
+					type: 'map',
+					map: 'china',
+					roam: true,
+					zoom: 1.2,
+					center: [105, 36],
+					itemStyle: {
+						areaColor: '#e8e8e8',
+						borderColor: '#ccc',
+						borderWidth: 1
+					},
+					emphasis: {
+						itemStyle: {
+							areaColor: '#d0d0d0'
+						},
+						label: {show: true}
+					},
+					select: {disabled: true},
+					data: provinceData
+				}]
+			};
+
+			chartInstance.setOption(option);
+
+			setTimeout(function() { chartInstance.resize(); }, 100);
+		}).catch(function(err) {
+			var failContainer = document.getElementById('life-map');
+			if (failContainer) {
+				failContainer.innerHTML = '<div class="h-full flex items-center justify-center text-[var(--content-meta)]">加载失败:' + (err.message || '') + '</div>';
+			}
+		});
+	}
+
+	function whenReady(fn) {
+		if (document.readyState === 'complete') {
+			requestAnimationFrame(fn);
+		} else {
+			window.addEventListener('load', function() {
+				requestAnimationFrame(fn);
+			});
+		}
+	}
+
+	whenReady(initMap);
+
+	window.addEventListener('resize', function() {
+		if (chartInstance) {
+			chartInstance.resize();
+		}
+	});
+
+	var prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+	function handleThemeChange() {
+		if (chartInstance) {
+			chartInstance.dispose();
+			chartInstance = null;
+		}
+		initMap();
+	}
+	prefersDark.addEventListener('change', handleThemeChange);
+
+	document.addEventListener('astro:after-swap', function() {
+		var newContainer = document.getElementById('life-map');
+		if (newContainer && !chartInstance) {
+			whenReady(initMap);
+		}
+	});
+})();
+</script>
