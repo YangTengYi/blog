@@ -33,6 +33,8 @@ export const placesConfig = {
 	},
 
 	// 足迹数据
+	// 如果配置了 lng/lat，则直接使用（推荐，更稳定）
+	// 未配置则通过高德地理编码自动获取
 	places: [
 		{
 			province: "河北",
@@ -41,6 +43,8 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 115.4845,
+			lat: 38.8735,
 		},
 		{
 			province: "河北",
@@ -49,6 +53,8 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 114.5149,
+			lat: 38.0428,
 		},
 		{
 			province: "河北",
@@ -57,6 +63,8 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 118.1753,
+			lat: 39.6308,
 		},
 		{
 			province: "河北",
@@ -65,6 +73,18 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 119.5865,
+			lat: 39.9425,
+		},
+		{
+			province: "河北",
+			city: "廊坊",
+			district: "",
+			experience: "",
+			visitCount: 1,
+			date: "",
+			lng: 116.6836,
+			lat: 39.5378,
 		},
 		{
 			province: "北京",
@@ -73,6 +93,18 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 116.4074,
+			lat: 39.9042,
+		},
+		{
+			province: "天津",
+			city: "天津",
+			district: "",
+			experience: "",
+			visitCount: 1,
+			date: "",
+			lng: 117.2010,
+			lat: 39.0842,
 		},
 		{
 			province: "宁夏",
@@ -81,6 +113,8 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 106.2309,
+			lat: 38.4872,
 		},
 		{
 			province: "宁夏",
@@ -89,6 +123,28 @@ export const placesConfig = {
 			experience: "",
 			visitCount: 1,
 			date: "",
+			lng: 106.3835,
+			lat: 38.9841,
+		},
+		{
+			province: "海南",
+			city: "海口",
+			district: "",
+			experience: "",
+			visitCount: 1,
+			date: "",
+			lng: 110.3312,
+			lat: 20.0319,
+		},
+		{
+			province: "海南",
+			city: "三亚",
+			district: "",
+			experience: "",
+			visitCount: 1,
+			date: "",
+			lng: 109.5085,
+			lat: 18.2528,
 		},
 	],
 };

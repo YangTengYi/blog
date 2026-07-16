@@ -119,7 +119,12 @@ const markerSize = placesConfig.marker.size;
 	}
 
 	// 根据地点名称使用高德地理编码获取经纬度
+	// 优先使用 places 数组中预配置的 lng/lat，否则通过地理编码获取
 	function geocodePlace(AMap, place) {
+		// 优先使用硬编码坐标
+		if (typeof place.lng === 'number' && typeof place.lat === 'number') {
+			return Promise.resolve({ lng: place.lng, lat: place.lat });
+		}
 		return new Promise(function(resolve) {
 			var geocoder = new AMap.Geocoder({ city: '' });
 			var address = (place.province || '') + (place.city || '') + (place.district || '');
