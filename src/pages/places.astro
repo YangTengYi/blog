@@ -107,10 +107,16 @@ const clientSortedPlaces = JSON.stringify(places);
 	}
 
 	function loadChinaMap() {
-		return fetch('/china-map.json')
-			.then(function(res) { return res.json(); })
+		// 优先使用阿里云 DataV 的国内数据源（无需代理，国内访问快）
+		return fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+			.then(function(res) {
+				if (!res.ok) throw new Error('DataV fetch failed');
+				return res.json();
+			})
 			.catch(function() {
-				return fetch('https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/china.json').then(function(res) { return res.json(); });
+				// 备用：jsdelivr CDN（注意：5.x 包路径已变更，4.9.0 路径可用）
+				return fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/china.json')
+					.then(function(res) { return res.json(); });
 			});
 	}
 
