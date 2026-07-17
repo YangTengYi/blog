@@ -109,7 +109,7 @@ const bangumiCollection = defineCollection({
 				.default("anime"),
 			subcategory: z.enum(["movie", "tv", "anime", "documentary"]).optional(),
 			status: z.number().min(1).max(5).default(2), // 1: 想看, 2: 看过, 3: 在看, 4: 搁置, 5: 抛弃
-			image: image().or(z.string()),
+			image: z.string().or(image()),
 			link: z.string().optional(), // 对应文章的链接；为空时自动从文件路径推导
 			score: z.number().min(0).max(10).optional(),
 			comment: z.string().optional(),
