@@ -5,7 +5,7 @@ pinned: true
 description: "精心筛选出的那 20% 的核心 Linux 命令，决定你 80% 工作效率的关键。遵循帕累托法则，把有限的学习时间投入到最高频、最实用的命令上。"
 image: "/images/linux/linux.jpg"
 slug: /linux-basic-commands
-tags: ["Linux", "命令行", "效率工具"]
+tags: ["Linux", "命令行", "效率工具","运维"]
 category: Linux
 draft: false
 descriptionSource: ai
