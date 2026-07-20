@@ -16,6 +16,12 @@ function syncPageBackground() {
 	backgroundColor = document.documentElement.classList.contains("dark")
 		? (musicPlayerConfig.visualizer?.background?.dark ?? "#0a0a15")
 		: (musicPlayerConfig.visualizer?.background?.light ?? "#ffffff");
+	// 同步到外层 .music-visualizer-page 的 CSS 变量，
+	// 避免 swup 切页或首屏水合前出现「深色 → 亮色」闪烁。
+	const pageEl = document.querySelector(".music-visualizer-page");
+	if (pageEl instanceof HTMLElement) {
+		pageEl.style.setProperty("--music-page-bg", backgroundColor);
+	}
 }
 
 function connectAudio() {
@@ -91,13 +97,16 @@ onDestroy(() => {
 </script>
 
 <div class="music-visualizer" style={`background: ${backgroundColor};`}>
-	{#if sceneReady}
-		<VisualizerControls />
-		<LyricsOverlay />
-	{/if}
-	<ThreeScene
-		{audioAnalyzer}
-		{backgroundColor}
-		onSceneReady={() => (sceneReady = true)}
-	/>
+	<VisualizerControls />
+	<LyricsOverlay />
+	<div
+		class="mv-three-stage"
+		class:mv-three-stage--ready={sceneReady}
+	>
+		<ThreeScene
+			{audioAnalyzer}
+			{backgroundColor}
+			onSceneReady={() => (sceneReady = true)}
+		/>
+	</div>
 </div>

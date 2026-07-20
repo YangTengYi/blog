@@ -3,6 +3,24 @@
 	inset: 0;
 	z-index: 100;
 	overflow: hidden;
+	/* 在 SSR/水合前使用深色背景兜底，避免 swup 切页时出现亮色闪烁。
+	   Svelte 组件挂载后会通过 --music-page-bg CSS 变量同步可视化器实际背景。 */
+	background: var(--music-page-bg, #0a0a15);
+	transition: background-color 320ms ease;
+}
+
+/* 3D 场景容器：在 WebGL 初始化完成前保持透明淡入，
+   避免出现「深色空背景 → 3D 场景突然出现」的视觉跳变 */
+.mv-three-stage {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	will-change: opacity;
+	transition: opacity 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.mv-three-stage--ready {
+	opacity: 1;
 }
 
 .music-visualizer-swup {
@@ -1257,7 +1275,9 @@ html:has(.music-visualizer-page) .footer {
 @media (prefers-reduced-motion: reduce) {
 	.music-visualizer__btn--playlist::before,
 	.music-visualizer__btn--playlist svg,
-	.music-visualizer__playlist-panel {
+	.music-visualizer__playlist-panel,
+	.mv-three-stage,
+	.music-visualizer-page {
 		transition-duration: 1ms;
 	}
 
