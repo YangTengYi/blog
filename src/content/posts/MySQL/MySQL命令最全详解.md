@@ -2,7 +2,7 @@
 title: MySQL 命令最全详解
 published: 2026-07-20
 description: "从登录到优化，一份涵盖 MySQL 核心命令的实战速查手册。包含数据库操作、表管理、CRUD、索引与执行计划等高频命令详解。"
-image: "/images/mysql/mysql.jpg"
+image: "/images/mysql.webp"
 slug: /mysql-commands
 tags: ["MySQL", "数据库", "SQL", "运维"]
 category: MySQL
