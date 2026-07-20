@@ -150,7 +150,7 @@ if (isLocalSrcLogo) {
             <div class="flex col-start-3 justify-self-end">
                 <!--<SearchPanel client:load>-->
                 <Search
-                    client:load
+                    client:idle
                 />
                 {musicPlayerConfig.showInNavbar && (
                     <button aria-label={i18n(I18nKey.music)} class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="music-player-switch">
@@ -186,7 +186,7 @@ if (isLocalSrcLogo) {
             </div>
         )}
         <NavMenuPanel links={links}></NavMenuPanel>
-        <DisplaySettings client:load></DisplaySettings>
+        <DisplaySettings client:idle></DisplaySettings>
     </div>
 </div>
 

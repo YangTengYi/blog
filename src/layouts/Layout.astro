@@ -159,6 +159,15 @@ const siteLang = lang.replace("_", "-");
 
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+
+    {/* 预连接外部域名，减少 DNS 查询和 TLS 握手延迟 */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://i.postimg.cc" />
+    <link rel="dns-prefetch" href="https://i.postimg.cc" />
+    <link rel="dns-prefetch" href="https://tc.alcy.cc" />
+    <link rel="dns-prefetch" href="https://gist.githubusercontent.com" />
+
     {
       favicons.map((favicon) => (
         <link
@@ -587,7 +596,7 @@ const siteLang = lang.replace("_", "-");
     <FancyboxManager />
 
     <!-- 复制内容提示组件 -->
-    <CopyMessage client:load />
+    <CopyMessage client:idle />
   </body>
 </html>
 
