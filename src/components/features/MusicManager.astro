@@ -58,7 +58,7 @@ const localPlaylist =
 			})
 		: [];
 
-const managerConfigStr = JSON.stringify({
+const managerConfig = {
 	mode: config.mode,
 	meting: config.meting,
 	localPlaylist: localPlaylist,
@@ -84,15 +84,34 @@ const managerConfigStr = JSON.stringify({
 		progress: i18n(I18nKey.musicProgress),
 		noCover: i18n(I18nKey.musicNoCover),
 	},
-});
+};
+const managerPayload = JSON.stringify({
+	managerConfig,
+	bangumiPlaylist,
+	metingApiBase,
+}).replaceAll("<", "\\u003c");
 ---
 
-<script is:inline define:vars={{ managerConfigStr, bangumiPlaylistJson: JSON.stringify(bangumiPlaylist), metingApiBase }}>
+<script
+	id="firefly-music-config"
+	type="application/json"
+	is:inline
+	set:html={managerPayload}
+></script>
+
+<script>
+// @ts-nocheck
 (function () {
     // Singleton guard – only create once per page
     if (window.__fireflyMusic) return;
 
-    var config = JSON.parse(managerConfigStr);
+    var configCarrier = document.getElementById('firefly-music-config');
+    if (!configCarrier) return;
+
+    var managerPayload = JSON.parse(configCarrier.textContent || '{}');
+    var config = managerPayload.managerConfig || {};
+    var bangumiPlaylist = managerPayload.bangumiPlaylist || [];
+    var metingApiBase = managerPayload.metingApiBase || '';
     var _externalLoaded = false;
 
     // ── Helpers ──────────────────────────────────────────────
@@ -130,6 +149,8 @@ const managerConfigStr = JSON.stringify({
     var audio = document.getElementById('firefly-music-audio') || document.createElement('audio');
     audio.id = 'firefly-music-audio';
     audio.crossOrigin = 'anonymous';
+    // Do not download multi-megabyte audio files before the user starts playback.
+    audio.preload = 'none';
     audio.style.display = 'none';
     if (!audio.parentNode) document.body.appendChild(audio);
 
@@ -411,8 +432,7 @@ const managerConfigStr = JSON.stringify({
         state.initializing = true;
 
         // 自动加载 bangumi 播放列表（构建时注入）— 优先于 meting，避免 meting 失败时丢失数据
-        var bangumi = [];
-        try { bangumi = JSON.parse(bangumiPlaylistJson || '[]'); } catch(e) {}
+        var bangumi = Array.isArray(bangumiPlaylist) ? bangumiPlaylist : [];
         if (bangumi.length > 0 && !_externalLoaded) {
             try {
                 var resolved = await resolveMetingTracks(bangumi);

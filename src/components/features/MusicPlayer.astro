@@ -42,7 +42,16 @@ const widgetId =
 	id || `music-widget-${Math.random().toString(36).substring(2, 9)}`;
 ---
 
-<div id={widgetId} class:list={["music-player-widget w-full relative transition-all duration-300", className]} style={style} role="region" aria-label={i18n(I18nKey.music)}>
+<div
+	id={widgetId}
+	class:list={["music-player-widget w-full relative transition-all duration-300", className]}
+	style={style}
+	role="region"
+	aria-label={i18n(I18nKey.music)}
+	data-view-config={viewConfigStr}
+	data-external-playlist={externalPlaylist}
+	data-meting-api-base={metingApiBase}
+>
 
     <!-- Top Row: Cover & Info -->
 <div class="flex items-center gap-2 mb-2 px-1">
@@ -183,11 +192,16 @@ const widgetId =
 </div>
 </template>
 
-<script define:vars={{ viewConfigStr, widgetId, externalPlaylist, metingApiBase }} is:inline>
-(function () {
+<script>
+// @ts-nocheck
+function initMusicPlayerWidget(widget) {
+    if (widget.dataset.musicPlayerInitialized === 'true') return;
+
+    var viewConfigStr = widget.dataset.viewConfig || '{}';
+    var widgetId = widget.id;
+    var externalPlaylist = widget.dataset.externalPlaylist || '';
+    var metingApiBase = widget.dataset.metingApiBase || '';
     var cfg = JSON.parse(viewConfigStr);
-    var widget = document.getElementById(widgetId);
-    if (!widget) return;
 
     var mgr = window.__fireflyMusic;
     if (!mgr) return;
@@ -263,13 +277,27 @@ const widgetId =
         ui.progressContainer, ui.btnNext, ui.btnPrev, ui.loading,
         ui.cover, ui.title, ui.artist, ui.playlistContainer, ui.itemTemplate];
     if (_critical.some(function(el) { return !el; })) return;
+    widget.dataset.musicPlayerInitialized = 'true';
 
     // ── Local state (drawers, user scrolling) ────────────────
     var local = {
         isUserScrolling: false,
         scrollTimeout: null,
-        currentLrcIndex: -1
+        currentLrcIndex: -1,
+        activeLrcIndex: -1,
+        currentTrackIndex: 0,
+        playlist: [],
+        lyrics: [],
+        lyricsStatus: 'none'
     };
+
+    function isPlaylistDrawerOpen() {
+        return ui.playlistDrawer.style.gridTemplateRows === '1fr';
+    }
+
+    function isLyricsDrawerOpen() {
+        return ui.lrcDrawer.style.gridTemplateRows === '1fr';
+    }
 
     // ── UI update functions ──────────────────────────────────
     function setLoading(bool) {
@@ -385,6 +413,14 @@ const widgetId =
         updatePlaylistActiveUI(currentIndex);
     }
 
+    function updatePlaylistData(playlist, currentIndex) {
+        local.playlist = playlist || [];
+        local.currentTrackIndex = currentIndex || 0;
+        if (isPlaylistDrawerOpen()) {
+            renderPlaylist(local.playlist, local.currentTrackIndex);
+        }
+    }
+
     function updatePlaylistActiveUI(currentIndex) {
         var items = ui.playlistContainer.querySelectorAll('.playlist-item');
         items.forEach(function (el) {
@@ -436,7 +472,23 @@ const widgetId =
         });
     }
 
+    function updateLyricsData(lyrics, status) {
+        local.lyrics = lyrics || [];
+        local.lyricsStatus = status || 'none';
+        if (local.lyricsStatus !== 'loaded') {
+            local.activeLrcIndex = -1;
+        }
+        if (isLyricsDrawerOpen()) {
+            renderLyricsUI(local.lyrics, local.lyricsStatus);
+            if (local.activeLrcIndex >= 0) {
+                updateLrcHighlight(local.activeLrcIndex);
+            }
+        }
+    }
+
     function updateLrcHighlight(index) {
+        local.activeLrcIndex = index;
+        if (!isLyricsDrawerOpen()) return;
         if (index === local.currentLrcIndex) return;
         local.currentLrcIndex = index;
 
@@ -477,7 +529,7 @@ const widgetId =
             return;
         }
 
-        renderPlaylist(s.playlist, s.currentIndex);
+        updatePlaylistData(s.playlist, s.currentIndex);
         if (s.track) updateTrackUI(s.track);
         updatePlayStateUI(s.isPlaying);
         updateModeUI(s.playMode);
@@ -493,7 +545,7 @@ const widgetId =
         }
 
         // Lyrics
-        renderLyricsUI(s.lyrics, s.lyrics.length > 0 ? 'loaded' : 'none');
+        updateLyricsData(s.lyrics, s.lyrics.length > 0 ? 'loaded' : 'none');
         if (s.currentLrcIndex >= 0) updateLrcHighlight(s.currentLrcIndex);
 
         // Cover image: if already set, show it
@@ -516,7 +568,7 @@ const widgetId =
         var d = e.detail;
         setLoading(false);
         if (d.playlist.length > 0) {
-            renderPlaylist(d.playlist, 0);
+            updatePlaylistData(d.playlist, 0);
             updateModeUI(d.playMode);
             updateVolumeUI(d.volume, d.isMuted);
         } else {
@@ -526,8 +578,12 @@ const widgetId =
 
     on('fm:track', function (e) {
         var d = e.detail;
+        local.activeLrcIndex = -1;
         updateTrackUI(d.track);
-        updatePlaylistActiveUI(d.index);
+        local.currentTrackIndex = d.index;
+        if (isPlaylistDrawerOpen()) {
+            updatePlaylistActiveUI(d.index);
+        }
     });
 
     on('fm:play-state', function (e) {
@@ -552,7 +608,7 @@ const widgetId =
     });
 
     on('fm:lyrics', function (e) {
-        renderLyricsUI(e.detail.lyrics, e.detail.status);
+        updateLyricsData(e.detail.lyrics, e.detail.status);
     });
 
     on('fm:lrc-index', function (e) {
@@ -610,6 +666,10 @@ const widgetId =
             ui.btnLrc.classList.remove('text-neutral-400');
             ui.iconLrcOn.classList.remove('hidden');
             ui.iconLrcOff.classList.add('hidden');
+            renderLyricsUI(local.lyrics, local.lyricsStatus);
+            if (local.activeLrcIndex >= 0) {
+                updateLrcHighlight(local.activeLrcIndex);
+            }
         }
     });
 
@@ -634,6 +694,7 @@ const widgetId =
             ui.playlistDrawer.classList.remove('opacity-0');
             ui.btnDrawer.classList.remove('text-neutral-400');
             ui.btnDrawer.classList.add('text-[var(--primary)]');
+            renderPlaylist(local.playlist, local.currentTrackIndex);
         }
     });
 
@@ -741,7 +802,21 @@ const widgetId =
             mgr.init();
         }
     }
-})();
+}
+
+function initMusicPlayerWidgets() {
+    document.querySelectorAll('.music-player-widget').forEach(initMusicPlayerWidget);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMusicPlayerWidgets, { once: true });
+} else {
+    initMusicPlayerWidgets();
+}
+
+document.addEventListener('swup:contentReplaced', function () {
+    requestAnimationFrame(initMusicPlayerWidgets);
+});
 </script>
 
 <style>
