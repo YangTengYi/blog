@@ -124,6 +124,9 @@ export default defineConfig({
 			updateHead: true,
 			updateBodyClass: false,
 			globalInstance: true,
+			// 音乐页使用独立的全屏页面骨架，不能与普通页面做局部容器替换。
+			// 进入音乐页时使用原生导航，保留正确的浏览器历史记录。
+			ignore: [/\/music\/?$/],
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,

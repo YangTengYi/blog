@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
-import Navbar from "@components/layout/Navbar.astro";
 import MusicVisualizer from "@components/features/music-visualizer/MusicVisualizer.svelte";
+import Navbar from "@components/layout/Navbar.astro";
 import Layout from "@layouts/Layout.astro";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
@@ -22,6 +22,7 @@ const navbarWidthFull = siteConfig.navbar?.widthFull ?? false;
 	<div
 		id="top-row"
 		class="music-visualizer-top-row z-50 pointer-events-none"
+		data-no-swup
 		class:list={[
 			navbarWidthFull ? "w-full" : "w-full max-w-(--page-width) px-0 md:px-4",
 		]}
@@ -36,6 +37,7 @@ const navbarWidthFull = siteConfig.navbar?.widthFull ?? false;
 	<div id="banner-dim-container" class="hidden"></div>
 	<div id="left-sidebar-dynamic" class="hidden"></div>
 	<div id="right-sidebar-dynamic" class="hidden"></div>
+	<div id="floating-toc-wrapper" class="hidden"></div>
 
 	<main id="swup-container" class="music-visualizer-swup transition-main">
 		<h1 class="sr-only">{i18n(I18nKey.musicPageTitle)}</h1>
@@ -48,6 +50,25 @@ const navbarWidthFull = siteConfig.navbar?.widthFull ?? false;
 	// MusicManager 已通过 Layout 在所有页面注入，并自动从 bangumi 集合加载音乐。
 	// 此处不再重复加载 bangumi 数据（避免与 MusicManager 冲突）。
 	// 3D 可视化器通过 MusicVisualizer.svelte 挂载时调用 mgr.init()。
+	</script>
+
+	<script is:inline>
+	(function disableSwupOnMusicPage() {
+		function disableSwup() {
+			var swup = window.swup;
+			if (!swup || typeof swup.destroy !== "function") return;
+
+			Promise.resolve(swup.destroy()).catch(function(error) {
+				console.warn("[MusicPage] Failed to disable Swup:", error);
+			});
+		}
+
+		if (window.swup) {
+			disableSwup();
+		} else {
+			document.addEventListener("swup:enable", disableSwup, { once: true });
+		}
+	})();
 	</script>
 
 	<!-- 主题切换（FloatingDock 不在此页面，需要单独处理） -->
