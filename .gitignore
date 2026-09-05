@@ -40,3 +40,7 @@ package/
 .edgeone/
 scripts/fill-descriptions.ts
 public/gallery
+
+# package manager cache / tool generated
+.pnpm-store/
+.learnings/
