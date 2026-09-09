@@ -192,7 +192,7 @@ onDestroy(() => {
 	</div>
 
 	<nav class="music-navbar">
-		<a href="/" class="music-navbar-title" title="返回首页">HydeMusic</a>
+		<a href="/" class="music-navbar-title" title="返回首页">xuwupiaomiao</a>
 		<div class="music-navbar-links">
 			<a href="/" class="music-navbar-link">首页</a>
 			<a href="/archive/" class="music-navbar-link">归档</a>
