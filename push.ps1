@@ -37,11 +37,5 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-# Best-effort push to Gitee (failure here does not abort the script)
-Write-Host "`nPushing to Gitee (best effort)..." -ForegroundColor Cyan
-git push origin master 2>$null
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Push to Gitee failed (ignored)." -ForegroundColor Yellow
-}
-
 Write-Host "`nDone." -ForegroundColor Green
+exit 0
