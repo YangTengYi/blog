@@ -1,0 +1,253 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  description: string;
+  descriptionSource?: "manual" | "ai" | string;
+}
+
+const { description, descriptionSource = "ai" } = Astro.props;
+
+const isManual = descriptionSource === "manual";
+const sourceLabel = isManual ? "人工编写" : "AI 摘要";
+const iconName = isManual
+  ? "material-symbols:edit-note"
+  : "material-symbols:psychiatry";
+---
+
+<div class="ai-summary-wrapper rounded-xl mb-6">
+  <div class="ai-summary">
+    <div class="ai-summary-inner">
+      <div class="ai-summary-header">
+        <div class="ai-summary-icon">
+          <Icon name={iconName} class="text-base" />
+        </div>
+        <span class="ai-summary-label">{sourceLabel}</span>
+      </div>
+      <p
+        class="ai-summary-text js-ai-summary-text typewriter-cursor dark:text-neutral-100"
+        data-full-text={description}
+      >
+      </p>
+    </div>
+    <span class="ai-summary-decorative-a">Ai</span>
+  </div>
+</div>
+
+<style>
+  .ai-summary {
+    position: relative;
+    background: color-mix(in srgb, var(--card-bg) 94%, transparent);
+    overflow: hidden;
+    border-radius: 0.75rem;
+    /* 三层阴影：顶部内发光 + 内边框线 + 基础下层柔和投影 */
+    box-shadow:
+      0 1px 0 oklch(1 0.012 var(--hue) / 0.55) inset,
+      0 0 0 1px oklch(1 0.01 var(--hue) / 0.14) inset,
+      0 16px 48px oklch(0.42 0.06 var(--hue) / 0.16);
+    /* 给阴影加过渡，hover变化顺滑 */
+    transition: box-shadow 0.3s ease;
+
+    background:
+      radial-gradient(
+        circle at 10% 0%,
+        color-mix(in srgb, var(--primary) 18%, transparent),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 92% 12%,
+        rgba(96, 165, 250, 0.14),
+        transparent 30%
+      ),
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.76),
+        rgba(255, 255, 255, 0.46)
+      );
+  }
+
+  .ai-summary-inner {
+    position: relative;
+    padding: 1rem 1.25rem;
+  }
+
+  .ai-summary:hover {
+    box-shadow:
+      0 1px 0 oklch(1 0.012 var(--hue) / 0.55) inset,
+      0 0 0 1px oklch(1 0.01 var(--hue) / 0.14) inset,
+      0 24px 64px oklch(0.3 0.08 var(--hue) / 0.28);
+  }
+
+  .ai-summary-decorative-a {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 0.75rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 35%, transparent),
+      color-mix(in srgb, var(--primary) 10%, transparent)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.22;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.05em;
+  }
+
+  .ai-summary:hover .ai-summary-decorative-a {
+    opacity: 0.3;
+  }
+
+  .ai-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .ai-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    flex-shrink: 0;
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .ai-summary:hover .ai-summary-icon {
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
+    transform: scale(1.05);
+  }
+
+  .ai-summary-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--primary);
+  }
+
+  .ai-summary-text {
+    position: relative;
+    font-size: 0.925rem;
+    line-height: 1.75;
+    min-height: 1.75em;
+    margin: 0;
+    padding-left: 0.75rem;
+  }
+
+  .ai-summary-text::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 40%, transparent)
+    );
+    opacity: 0.85;
+  }
+
+  /* 深色模式适配 */
+  :global(html.dark) .ai-summary:hover {
+    overflow: hidden;
+    border-radius: 0.75rem;
+    box-shadow:
+      0 1px 0 oklch(1 0.012 var(--hue) / 0.65) inset,
+      0 0 0 1px oklch(1 0.01 var(--hue) / 0.22) inset,
+      0 16px 48px oklch(0.28 0.08 var(--hue) / 0.32);
+    transition: box-shadow 0.3s ease;
+  }
+
+  :global(html.dark) .ai-summary-decorative-a {
+    opacity: 0.18;
+  }
+
+  :global(html.dark) .ai-summary:hover .ai-summary-decorative-a {
+    opacity: 0.26;
+  }
+</style>
+
+<script is:inline>
+  (function initAiSummaryTypewriter() {
+    function run() {
+      const el = document.querySelector(".js-ai-summary-text");
+      if (!el || el.dataset.typingInit === "1") return;
+      el.dataset.typingInit = "1";
+
+      const fullText = el.getAttribute("data-full-text") || "";
+
+      // 无障碍：减少动态效果
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        el.textContent = fullText;
+        return;
+      }
+
+      let hasRun = false;
+      const speed = 45;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting && !hasRun) {
+              hasRun = true;
+              observer.unobserve(el);
+              startTyping(el, fullText, speed);
+            }
+          }
+        },
+        { threshold: 0.3 },
+      );
+
+      observer.observe(el);
+    }
+
+    function startTyping(el, fullText, speed) {
+      let i = 0;
+      el.textContent = "";
+
+      function tick() {
+        if (i < fullText.length) {
+          el.textContent += fullText.charAt(i);
+          i++;
+
+          // 根据标点符号调整停顿时间
+          const char = fullText.charAt(i - 1);
+          let delay = speed;
+          if (char === "，" || char === "、" || char === "；" || char === ":") {
+            delay = speed * 2;
+          } else if (
+            char === "。" ||
+            char === "！" ||
+            char === "？" ||
+            char === "…"
+          ) {
+            delay = speed * 3;
+          }
+
+          setTimeout(tick, delay);
+        }
+      }
+
+      setTimeout(tick, 250);
+    }
+
+    run();
+    document.addEventListener("astro:page-load", run);
+  })();
+</script>
