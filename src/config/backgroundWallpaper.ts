@@ -112,16 +112,6 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 					icon: "fa7-solid:envelope",
 					url: "19353377895@163.com",
 				},
-				{
-					name: "Sponsor",
-					icon: "material-symbols:favorite",
-					url: "https://blog.xuwupiaomiao.cn/sponsor/",
-				},
-				{
-					name: "RSS",
-					icon: "fa7-solid:rss",
-					url: "/rss/",
-				},
 			],
 		},
 		// 壁纸轮播配置，横幅壁纸和全屏壁纸共享，仅在配置多张图片时生效
