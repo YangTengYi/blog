@@ -2,7 +2,7 @@
 title: 待办
 published: 2026-05-09
 pinned: true # 固定在顶部
-image: "https://photo.seasir.top/images/local/_thumb-1415085bf66a-800.webp"
+image: "api"
 slug: /todo
 tags: ["Astro"]
 category: Firefly
