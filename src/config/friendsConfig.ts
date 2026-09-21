@@ -21,7 +21,7 @@ export const friendsPageConfig: FriendsPageConfig = {
 
 	// 本站点信息（用于友链申请表单，请改为你自己的站点信息）
 	site: {
-		name: "Hyde Blog",
+		name: "xuwupiaomiao Blog",
 		desc: "人心中的成见是一座大山",
 		url: "https://seasir.top",
 		avatar: "https://seasir.top/assets/avatar.avif",
@@ -55,7 +55,7 @@ export const friendsPageConfig: FriendsPageConfig = {
 // 友链配置
 export const friendsConfig: FriendLink[] = [
 	{
-		title: "Hyde Blog",
+		title: "xuwupiaomiao Blog",
 		desc: "人心中的成见是一座大山",
 		siteurl: "https://seasir.top/",
 		imgurl: "/assets/avatar.avif",

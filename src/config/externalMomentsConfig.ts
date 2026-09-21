@@ -13,7 +13,7 @@ export const externalMomentsConfig = {
 	fileName: "moments.json",
 
 	// 默认作者信息
-	defaultAuthor: "Hyde",
+	defaultAuthor: "xuwupiaomiao",
 	defaultAvatar:
 		"https://i.postimg.cc/7YLVJqnp/wei-xin-tu-pian-2026-05-07-020150-883.jpg",
 
